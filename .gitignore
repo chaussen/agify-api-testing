@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.env
+cucumber-report.json
+cucumber-report.html

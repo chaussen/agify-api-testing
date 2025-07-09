@@ -1,0 +1,40 @@
+{
+  "name": "agify-api-test",
+  "version": "1.0.0",
+  "description": "BDD API tests for agify.io using Cucumber and TypeScript",
+  "main": "index.js",
+  "scripts": {
+    "test": "cucumber-js",
+    "build": "tsc",
+    "lint": "eslint src/**/*.ts",
+    "clean": "rm -rf dist",
+    "format": "prettier --write src/**/*.ts"
+  },
+  "keywords": [
+    "api",
+    "testing",
+    "bdd",
+    "cucumber",
+    "typescript",
+    "agify"
+  ],
+  "author": "John Ni",
+  "devDependencies": {
+    "@cucumber/cucumber": "^10.0.0",
+    "@eslint/js": "^9.30.1",
+    "@types/dotenv": "^6.1.1",
+    "@types/node": "^20.0.0",
+    "dotenv": "^17.1.0",
+    "eslint": "^9.30.1",
+    "globals": "^16.3.0",
+    "prettier": "^3.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.36.0"
+  },
+  "dependencies": {
+    "@types/chai": "^4.3.0",
+    "axios": "^1.6.0",
+    "chai": "^4.3.0"
+  }
+}

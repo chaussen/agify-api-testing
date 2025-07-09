@@ -2,9 +2,9 @@ name: API Tests
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ develop ]
+    branches: [ main, develop ]
   workflow_dispatch:
     inputs:
       environment:
@@ -23,7 +23,7 @@ jobs:
     environment: ${{ matrix.environment }}
     strategy:
       matrix:
-        environment: ${{ github.event_name == 'workflow_dispatch' && fromJson(format('["{0}"]', github.event.inputs.environment)) || fromJson('["build"]') }}
+        environment: ${{ github.event_name == 'workflow_dispatch' && fromJson(format('["{0}"]', github.event.inputs.environment)) || fromJson('["build", "integration"]') }}
     
     name: Test against ${{ matrix.environment }}
     
@@ -78,13 +78,11 @@ jobs:
         
     - name: Setup Pages
       uses: actions/configure-pages@v4
-      with:
-        enablement: true
       
     - name: Create index page
       run: |
         mkdir -p public
-        cat > public/index.html << 'EOF'
+        cat > public/index.html << EOF
         <!DOCTYPE html>
         <html>
         <head>

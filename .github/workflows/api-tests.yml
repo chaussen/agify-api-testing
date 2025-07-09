@@ -1,0 +1,139 @@
+name: API Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run tests against'
+        required: true
+        default: 'build'
+        type: choice
+        options:
+          - build
+          - integration
+          - prod
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    strategy:
+      matrix:
+        environment: ${{ github.event_name == 'workflow_dispatch' && fromJson(format('["{0}"]', github.event.inputs.environment)) || fromJson('["build", "integration"]') }}
+    
+    name: Test against ${{ matrix.environment }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Create reports directory
+      run: mkdir -p reports
+    
+    - name: Run tests
+      env:
+        BASE_URL: ${{ vars.BASE_URL }}
+        DEBUG: ${{ vars.DEBUG }}
+        API_KEY: ${{ secrets.API_KEY }}
+      run: npm run test
+      
+    - name: Upload HTML Report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: cucumber-report-${{ matrix.environment }}
+        path: reports/
+        retention-days: 30
+        
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-${{ matrix.environment }}
+        path: reports/cucumber-report.json
+        retention-days: 30
+
+  publish-report:
+    needs: api-tests
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./reports
+        
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+      
+    - name: Create index page
+      run: |
+        mkdir -p public
+        cat > public/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>API Test Reports</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                .report-link { 
+                    display: block; 
+                    margin: 10px 0; 
+                    padding: 10px; 
+                    background: #f0f0f0; 
+                    text-decoration: none; 
+                    border-radius: 5px; 
+                }
+                .report-link:hover { background: #e0e0e0; }
+            </style>
+        </head>
+        <body>
+            <h1>API Test Reports</h1>
+            <p>Generated on: $(date)</p>
+        EOF
+        
+        for dir in reports/cucumber-report-*; do
+          if [ -d "$dir" ]; then
+            env=$(basename "$dir" | sed 's/cucumber-report-//')
+            cp -r "$dir" "public/$env"
+            echo "<a href=\"$env/cucumber-report.html\" class=\"report-link\">$env Environment Report</a>" >> public/index.html
+          fi
+        done
+        
+        echo "</body></html>" >> public/index.html
+        
+    - name: Upload to Pages
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ./public
+
+  deploy-pages:
+    needs: publish-report
+    runs-on: ubuntu-latest
+    if: always() && github.ref == 'refs/heads/main'
+    
+    permissions:
+      pages: write
+      id-token: write
+      
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+      
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

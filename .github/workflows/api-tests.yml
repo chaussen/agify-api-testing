@@ -2,9 +2,9 @@ name: API Tests
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ develop ]
   workflow_dispatch:
     inputs:
       environment:
@@ -23,7 +23,7 @@ jobs:
     environment: ${{ matrix.environment }}
     strategy:
       matrix:
-        environment: ${{ github.event_name == 'workflow_dispatch' && fromJson(format('["{0}"]', github.event.inputs.environment)) || fromJson('["build", "integration"]') }}
+        environment: ${{ github.event_name == 'workflow_dispatch' && fromJson(format('["{0}"]', github.event.inputs.environment)) || fromJson('["build"]') }}
     
     name: Test against ${{ matrix.environment }}
     

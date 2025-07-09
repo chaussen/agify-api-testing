@@ -29,7 +29,7 @@ export class AgifyApiClient {
     if (countryId && countryId !== "DEFAULT") {
       params.country_id = countryId;
     }
-    if (apiKey) {
+    if (apiKey && apiKey.trim() !== "") {
       params.api_key = apiKey;
     }
     return params;

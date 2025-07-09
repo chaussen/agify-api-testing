@@ -82,6 +82,7 @@ jobs:
     - name: Create index page
       run: |
         mkdir -p public
+        CURRENT_DATE=$(date)
         cat > public/index.html << EOF
         <!DOCTYPE html>
         <html>
@@ -102,7 +103,7 @@ jobs:
         </head>
         <body>
             <h1>API Test Reports</h1>
-            <p>Generated on: $(date)</p>
+            <p>Generated on: $CURRENT_DATE</p>
         EOF
         
         for dir in reports/cucumber-report-*; do
